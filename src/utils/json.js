@@ -10,6 +10,24 @@ export function validate(jsonStr) {
   }
 }
 
+export function validateJson(jsonStr) {
+  if (typeof jsonStr !== 'string' || jsonStr.trim() === '') {
+    return { valid: false, line: 1, column: 1, message: 'Empty input' }
+  }
+  try {
+    JSON.parse(jsonStr)
+    return { valid: true }
+  } catch (e) {
+    const err = parseError(e, jsonStr)
+    return {
+      valid: false,
+      line: err.line,
+      column: err.column,
+      message: err.message
+    }
+  }
+}
+
 function parseError(error, jsonStr) {
   const pos = findErrorPosition(jsonStr)
   const lines = jsonStr.slice(0, pos).split('\n')
@@ -22,7 +40,7 @@ function parseError(error, jsonStr) {
   }
 }
 
-function findErrorPosition(jsonStr) {
+export function findErrorPosition(jsonStr) {
   let i = 0
   const len = jsonStr.length
 
@@ -297,3 +315,6 @@ export function minify(jsonStr) {
 
   return result
 }
+
+export const formatJson = format
+export const minifyJson = minify
