@@ -6,11 +6,11 @@
       <div class="app-container">
         <div class="layout-grid">
           <aside class="panel panel-left">
-            <JsonEditorPlaceholder />
+            <JsonEditor v-model="jsonText" @validate="onValidate" />
           </aside>
 
           <section class="panel panel-right">
-            <JsonViewerPlaceholder />
+            <JsonViewer :json-str="jsonText" :is-valid="isValid" />
           </section>
         </div>
       </div>
@@ -21,10 +21,35 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
-import JsonEditorPlaceholder from '@/components/JsonEditorPlaceholder.vue'
-import JsonViewerPlaceholder from '@/components/JsonViewerPlaceholder.vue'
+import JsonEditor from '@/components/JsonEditor.vue'
+import JsonViewer from '@/components/JsonViewer.vue'
+
+const jsonText = ref('')
+const isValid = ref(false)
+
+function onValidate(error) {
+  isValid.value = error === null && jsonText.value.trim() !== ''
+}
+
+const sampleJson = `{
+  "name": "JSON Formatter",
+  "version": "1.0.0",
+  "features": ["格式化", "压缩", "校验", "树形浏览"],
+  "author": {
+    "name": "开发者",
+    "email": "dev@example.com"
+  },
+  "active": true,
+  "count": 42,
+  "score": null
+}`
+
+onMounted(() => {
+  jsonText.value = sampleJson
+})
 </script>
 
 <style scoped>
