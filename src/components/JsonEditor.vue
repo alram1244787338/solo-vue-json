@@ -3,12 +3,28 @@
     <div class="editor-header">
       <h3 class="editor-title">JSON 编辑器</h3>
       <div class="editor-actions">
-        <button class="btn btn-primary" @click="onFormat" :disabled="!isValid">
-          格式化
-        </button>
-        <button class="btn btn-secondary" @click="onMinify" :disabled="!isValid">
-          压缩
-        </button>
+        <span class="tooltip-wrapper">
+          <button
+            class="btn btn-primary"
+            @click="onFormat"
+            :disabled="!isValid"
+            :title="!isValid ? '请先输入有效的 JSON' : ''"
+          >
+            格式化
+          </button>
+          <span v-if="!isValid" class="tooltip">请先输入有效的 JSON</span>
+        </span>
+        <span class="tooltip-wrapper">
+          <button
+            class="btn btn-secondary"
+            @click="onMinify"
+            :disabled="!isValid"
+            :title="!isValid ? '请先输入有效的 JSON' : ''"
+          >
+            压缩
+          </button>
+          <span v-if="!isValid" class="tooltip">请先输入有效的 JSON</span>
+        </span>
         <button class="btn btn-ghost" @click="onClear">
           清空
         </button>
@@ -134,6 +150,45 @@ function onClear() {
 .editor-actions {
   display: flex;
   gap: 8px;
+  align-items: center;
+}
+
+.tooltip-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-text);
+  color: #fff;
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--color-text);
+}
+
+.tooltip-wrapper:hover .tooltip {
+  opacity: 1;
+  visibility: visible;
 }
 
 .btn {

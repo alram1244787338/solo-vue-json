@@ -35,12 +35,18 @@
 
     <div v-if="isExpandable && expanded" class="node-children">
       <TreeNode
-        v-for="(child, index) in children"
+        v-for="(child, index) in visibleChildren"
         :key="index"
         :key-name="child.key"
         :value="child.value"
         :is-root="false"
       />
+      <div v-if="hasMore" class="node-row node-more-row" @click="showAll = true">
+        <span class="toggle-btn toggle-placeholder"></span>
+        <span class="node-more">
+          还有 {{ hiddenCount }} 项...点击展开全部
+        </span>
+      </div>
     </div>
 
     <div v-if="isExpandable && expanded" class="node-row node-close-row">
@@ -52,6 +58,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+
+const VISIBLE_LIMIT = 100
+const INITIAL_VISIBLE = 20
 
 const props = defineProps({
   keyName: {
@@ -69,6 +78,7 @@ const props = defineProps({
 })
 
 const expanded = ref(true)
+const showAll = ref(false)
 
 const valueType = computed(() => {
   if (props.value === null) return 'null'
@@ -93,12 +103,46 @@ const closeBracket = computed(() => {
 
 const children = computed(() => {
   if (valueType.value === 'array') {
-    return props.value.map((v, i) => ({ key: i, value: v }))
+    const len = props.value.length
+    const limit = showAll.value ? len : Math.min(len, VISIBLE_LIMIT)
+    const result = []
+    for (let i = 0; i < limit; i++) {
+      result.push({ key: i, value: props.value[i] })
+    }
+    return result
   }
   if (valueType.value === 'object') {
-    return Object.entries(props.value).map(([k, v]) => ({ key: k, value: v }))
+    const keys = Object.keys(props.value)
+    const len = keys.length
+    const limit = showAll.value ? len : Math.min(len, VISIBLE_LIMIT)
+    const result = []
+    for (let i = 0; i < limit; i++) {
+      const k = keys[i]
+      result.push({ key: k, value: props.value[k] })
+    }
+    return result
   }
   return []
+})
+
+const totalChildrenCount = computed(() => {
+  if (valueType.value === 'array') return props.value.length
+  if (valueType.value === 'object') return Object.keys(props.value).length
+  return 0
+})
+
+const hasMore = computed(() => {
+  return !showAll.value && totalChildrenCount.value > VISIBLE_LIMIT
+})
+
+const visibleChildren = computed(() => {
+  if (showAll.value) return children.value
+  const limit = Math.min(children.value.length, INITIAL_VISIBLE)
+  return children.value.slice(0, limit)
+})
+
+const hiddenCount = computed(() => {
+  return Math.max(0, totalChildrenCount.value - INITIAL_VISIBLE)
 })
 
 const summary = computed(() => {
@@ -127,7 +171,7 @@ function toggleExpand() {
 }
 
 onMounted(() => {
-  expanded.value = props.isRoot ? true : children.value.length <= 20
+  expanded.value = props.isRoot ? true : totalChildrenCount.value <= INITIAL_VISIBLE
 })
 </script>
 
@@ -237,5 +281,21 @@ onMounted(() => {
 
 .node-close-row:hover {
   background: transparent;
+}
+
+.node-more-row {
+  cursor: pointer;
+}
+
+.node-more-row:hover {
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.node-more {
+  color: var(--color-text-muted);
+  font-style: italic;
+  font-size: 12px;
+  padding: 4px 0;
+  display: inline-block;
 }
 </style>
